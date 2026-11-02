@@ -18,8 +18,3 @@ order.remove_item("Mouse")
 
 print(order.total_amount)
 # 100000
-
-
-
-
-

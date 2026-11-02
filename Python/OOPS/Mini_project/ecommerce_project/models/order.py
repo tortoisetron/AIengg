@@ -1,7 +1,5 @@
 from dataclasses import dataclass, field
-
 from models.order_item import OrderItem
-
 
 @dataclass
 class Order:
@@ -10,7 +8,7 @@ class Order:
     _items: list[OrderItem] = field(default_factory=list)    
 
     status: str = field(default="pending", init=False)
-    total_amount: float = field(default=0, init=False)
+    # total_amount: float = field(default=0, init=False)
 
     @property
     def items(self):
@@ -21,8 +19,9 @@ class Order:
         return sum(item.total_price for item in self._items)
     
     def add_item(self, item: OrderItem):
+        if not isinstance(item, OrderItem):
+            raise TypeError("Expected an OrderItem object")
         self._items.append(item)
-        self.calculate_total()
 
     
     def remove_item(self, product_name: str) -> bool:
@@ -33,12 +32,7 @@ class Order:
             if item.product_name != product_name
         ]
 
-        removed = len(self._items) < original_count
-
-        if removed:
-            self.calculate_total()
-
-        return removed
+        return len(self._items) < original_count
     
     def update_quantity(self, product_name: str, new_quantity: int) -> bool:
         
@@ -51,9 +45,7 @@ class Order:
                 if item.quantity == new_quantity:
                     return False
 
-                item.quantity = new_quantity
-                self.calculate_total()
-                
+                item.quantity = new_quantity                
                 return True
 
         return False
