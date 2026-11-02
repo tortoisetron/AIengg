@@ -1,7 +1,5 @@
 from dataclasses import dataclass, field
 
-from sympy import false
-
 from models.order_item import OrderItem
 
 
@@ -11,26 +9,22 @@ class Order:
     customer_name: str
     _items: list[OrderItem] = field(default_factory=list)    
 
-
     status: str = field(default="pending", init=False)
     total_amount: float = field(default=0, init=False)
 
-    def __post_init__(self):
+    @property
+    def items(self):
+        return self._items.copy()
+
+    @property
+    def total_amount(self) -> float:
+        return sum(item.total_price for item in self._items)
+    
+    def add_item(self, item: OrderItem):
+        self._items.append(item)
         self.calculate_total()
 
-    def calculate_total(self):
-        self.total_amount = sum(
-            item.total_price for item in self._items
-        )
-        
-        return self.total_amount
     
-    # def remove_item(self, product_name: str):
-    #     self._items = [
-    #         item for item in self._items
-    #         if item.product_name != product_name
-    #     ]
-    #     self.calculate_total()
     def remove_item(self, product_name: str) -> bool:
         original_count = len(self._items)
 
@@ -63,13 +57,4 @@ class Order:
                 return True
 
         return False
-            
-            
-            
-    @property
-    def items(self):
-        return self._items.copy()
 
-    def add_item(self, item: OrderItem):
-        self._items.append(item)
-        self.calculate_total()

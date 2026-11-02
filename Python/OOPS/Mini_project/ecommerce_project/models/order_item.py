@@ -1,19 +1,29 @@
-from dataclasses import dataclass, field
-
-
-@dataclass
 class OrderItem:
-    product_name: str
-    unit_price: float
-    quantity: int
+    def __init__(self, product_name, unit_price, quantity):
+        self.product_name = product_name
+        self.unit_price = unit_price
+        self.quantity = quantity
 
-    total_price: float = field(init=False)
+    @property
+    def quantity(self):
+        return self._quantity
 
-    def __post_init__(self):
-        if self.unit_price < 0:
+    @quantity.setter
+    def quantity(self, value):
+        if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+            raise ValueError("Quantity must be a positive integer")
+        self._quantity = value
+
+    @property
+    def unit_price(self):
+        return self._unit_price
+
+    @unit_price.setter
+    def unit_price(self, value):
+        if value < 0:
             raise ValueError("Price cannot be negative")
+        self._unit_price = value
 
-        if self.quantity <= 0:
-            raise ValueError("Quantity must be positive")
-
-        self.total_price = self.unit_price * self.quantity
+    @property
+    def total_price(self):
+        return self.unit_price * self.quantity
