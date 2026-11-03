@@ -1,5 +1,9 @@
 from dataclasses import dataclass, field
+from datetime import datetime
+from models.order_history import OrderHistory
 from models.order_item import OrderItem
+import copy
+from models.order_status import ALLOWED_TRANSITIONS, OrderStatus
 
 @dataclass
 class Order:
@@ -7,12 +11,30 @@ class Order:
     customer_name: str
     _items: list[OrderItem] = field(default_factory=list)    
 
-    status: str = field(default="pending", init=False)
-    # total_amount: float = field(default=0, init=False)
+    _status: OrderStatus = field(
+        default=OrderStatus.PENDING,
+        init=False,
+        repr=False
+    )
+    _history: list[OrderHistory] = field(
+        default_factory=list,
+        repr=False
+    )
+    
+    def __post_init__(self):
+        self._record_status_change(self.status)
 
     @property
     def items(self):
         return self._items.copy()
+    
+    @property
+    def status(self) -> OrderStatus:
+        return self._status
+    
+    @property
+    def history(self) -> list[OrderHistory]:
+        return copy.deepcopy(self._history)
 
     @property
     def total_amount(self) -> float:
@@ -49,4 +71,33 @@ class Order:
                 return True
 
         return False
+    
+    def change_status(self, new_status: OrderStatus) -> None:
+
+        if not isinstance(new_status, OrderStatus):
+            raise TypeError("Status must be an OrderStatus")
+
+        allowed = ALLOWED_TRANSITIONS[self._status]
+        
+        if new_status == OrderStatus.PAID:
+            if not self._items:
+                raise ValueError("Cannot pay for an empty order")
+        
+        if new_status == OrderStatus.CANCELLED:
+            if self._status in (OrderStatus.SHIPPED, OrderStatus.DELIVERED):
+                raise ValueError(f'order is already {self._status.value}')
+            
+
+        if new_status not in allowed:
+            raise ValueError(
+                f"Cannot change status from "
+                f"{self._status.value} to {new_status.value}"
+            )
+        self._status = new_status
+        self._record_status_change(new_status)
+        
+    def _record_status_change(self, status: OrderStatus):
+        
+        self._history.append(OrderHistory(status,datetime.now()))
+    
 
