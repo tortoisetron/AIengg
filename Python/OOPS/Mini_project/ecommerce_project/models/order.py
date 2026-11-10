@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
+from exceptions.order_exceptions import EmptyOrderError, InvalidOrderStatusError
 from models.order_history import OrderHistory
 from models.order_item import OrderItem
 import copy
@@ -81,20 +82,20 @@ class Order:
         
         if new_status == OrderStatus.PAID:
             if not self._items:
-                raise ValueError("Cannot pay for an empty order")
+                raise EmptyOrderError("Cannot pay for an empty order")
         
         if new_status == OrderStatus.CANCELLED:
             if self._status in (OrderStatus.SHIPPED, OrderStatus.DELIVERED):
-                raise ValueError(f'order is already {self._status.value}')
+                raise InvalidOrderStatusError(f'order is already {self._status.value}')
             
 
         if new_status not in allowed:
-            raise ValueError(
+            raise InvalidOrderStatusError(
                 f"Cannot change status from "
                 f"{self._status.value} to {new_status.value}"
             )
-        self._status = new_status
         self._record_status_change(new_status)
+        self._status = new_status
         
     def _record_status_change(self, status: OrderStatus):
         
