@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from exceptions.order_exceptions import EmptyOrderError, InvalidOrderStatusError
+from exceptions.order_exceptions import EmptyOrderError, InvalidOrderStatusError, ProductNotFoundError
 from models.order_history import OrderHistory
 from models.order_item import OrderItem
 import copy
@@ -48,14 +48,13 @@ class Order:
 
     
     def remove_item(self, product_name: str) -> bool:
-        original_count = len(self._items)
+        
+        for item in self._items:
+            if item.product_name == product_name:
+                self._items.remove(item)
+                return True 
 
-        self._items = [
-            item for item in self._items
-            if item.product_name != product_name
-        ]
-
-        return len(self._items) < original_count
+        raise ProductNotFoundError("Product doesn't exist")             
     
     def update_quantity(self, product_name: str, new_quantity: int) -> bool:
         
@@ -71,7 +70,7 @@ class Order:
                 item.quantity = new_quantity                
                 return True
 
-        return False
+        raise ProductNotFoundError("Product doesn't exist")
     
     def change_status(self, new_status: OrderStatus) -> None:
 

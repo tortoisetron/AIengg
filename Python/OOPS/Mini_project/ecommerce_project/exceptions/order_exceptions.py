@@ -6,3 +6,6 @@ class EmptyOrderError(OrderError):
 
 class InvalidOrderStatusError(OrderError):
     pass
+
+class ProductNotFoundError(OrderError):
+    pass
