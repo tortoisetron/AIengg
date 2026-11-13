@@ -1,65 +1,29 @@
+from exceptions.order_exceptions import EmptyOrderError, ProductNotFoundError
+from services.order_service import OrderService
 from models.order import Order
-from models.order import OrderStatus
+from models.order_status import OrderStatus
 from models.order_item import OrderItem
-
-
-# order = Order(101, "Alice")
-
-# order.add_item(OrderItem("Laptop", 50000, 1))
-# order.add_item(OrderItem("Mouse", 500, 2))
-
-# print(order.total_amount)
-# # 51000
-
-# order.update_quantity("Laptop", 2)
-
-# print(order.total_amount)
-# # 101000
-
-# order.remove_item("Mouse")
-
-# print(order.total_amount)
-# # 100000
-
-# status = OrderStatus.PENDING
-
-# print(status)
-# # OrderStatus.PENDING
-
-# print(status.value)
-# # pending
-
-# print(status.name)
-# # PENDING
-
 
 order = Order(101, "Alice")
 
-# print(order.status)
-# OrderStatus.PENDING
-order.add_item(OrderItem("Laptop", 50000, 1))
-order.change_status(OrderStatus.PAID)
-order.change_status(OrderStatus.PROCESSING)
-order.change_status(OrderStatus.SHIPPED)
-order.change_status(OrderStatus.DELIVERED)
-# order.change_status(OrderStatus.CANCELLED)
-# order.history[0]["status"] = OrderStatus.DELIVERED
+order_svc = OrderService(order)
 
-previous_count = len(order.history)
+order_svc.add_item(OrderItem("Laptop", 50000, 1))
+order_svc.add_item(OrderItem("mouse", 5000, 2))
 
+print(order_svc.calculate_total())
 try:
-    order.change_status(OrderStatus.CANCELLED)
-except ValueError as e:
+    order_svc.pay_order()
+except EmptyOrderError as e:
     print(e)
 
-print(len(order.history) == previous_count)
-# for status in order.history:
-#     print(f'status: {status.status.value} , time: {status.timestamp}')
+print(order.status)
+for status in order.history:
+    print(f'status: {status.status.value} , time: {status.timestamp}')
 
-# print(order.history)
 
-# OrderStatus.PAID
-
-# order.change_status(OrderStatus.PAID)
-
-# OrderStatus.PROCESSING
+try:
+    order_svc.remove_item('keyboard')
+except ProductNotFoundError as e:
+    print(e)
+    
